@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "My Applications";
+}
+
+<h2>My Applications</h2>
+
+@if (!User.Identity.IsAuthenticated)
+{
+    <p>You must be logged in to view applications.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>University</th>
+                <th>Program</th>
+                <th>Status</th>
+                <th>Applied On</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Sample University</td>
+                <td>Computer Science</td>
+                <td>Pending</td>
+                <td>@DateTime.Now.ToShortDateString()</td>
+            </tr>
+        </tbody>
+    </table>
+}

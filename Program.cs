@@ -1,22 +1,43 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UniversityApplicationSystem.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// ==========================
+// Database
+// ==========================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+// ==========================
+// Identity (WITH ROLES)
+// ==========================
+builder.Services
+    .AddDefaultIdentity<IdentityUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+    })
+    .AddRoles<IdentityRole>() // ✅ REQUIRED
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ==========================
+// HTTP Pipeline
+// ==========================
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -24,15 +45,27 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+// IMPORTANT ORDER
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ==========================
+// Seed Roles & Admin User
+// ==========================
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var services = scope.ServiceProvider;
+
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
     string[] roles = { "Admin", "Student" };
 
@@ -44,8 +77,10 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Create default admin
-    var adminEmail = "admin@system.com";
+    // Default Admin
+    string adminEmail = "admin@system.com";
+    string adminPassword = "Admin@123";
+
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
     if (adminUser == null)
@@ -57,26 +92,22 @@ using (var scope = app.Services.CreateScope())
             EmailConfirmed = true
         };
 
-        await userManager.CreateAsync(user, "Admin@123");
-        await userManager.AddToRoleAsync(user, "Admin");
+        var result = await userManager.CreateAsync(user, adminPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
     }
 }
 
-
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseStaticFiles();
-
+// ==========================
+// Routing
+// ==========================
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages(); // Identity UI
 
 app.Run();

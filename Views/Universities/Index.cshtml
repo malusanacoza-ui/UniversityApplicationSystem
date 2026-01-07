@@ -1,39 +1,33 @@
-﻿@model IEnumerable<University>
-
-@{
+﻿@{
     ViewData["Title"] = "Universities";
 }
 
 <h2 class="mb-4">Available Universities</h2>
 
-@if (!Model.Any())
-{
-    <p>No universities available at the moment.</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var uni in Model)
-        {
-            <div class="col-md-4">
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">@uni.Name</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">@uni.Location</h6>
+<div class="row g-4 university-grid">
 
-                        <p class="card-text">
-                            @uni.Description
-                        </p>
-
-                        <a asp-controller="Applications"
-                           asp-action="Apply"
-                           asp-route-universityId="@uni.Id"
-                           class="btn btn-primary">
-                            Apply Now
-                        </a>
-                    </div>
-                </div>
-            </div>
-        }
+    <div class="col-md-4">
+        <div class="university-card card-blue">
+            <h4>Oxford University</h4>
+            <p>United Kingdom</p>
+            <a class="btn btn-light mt-3">View Programs</a>
+        </div>
     </div>
-}
+
+    <div class="col-md-4">
+        <div class="university-card card-green">
+            <h4>Harvard University</h4>
+            <p>United States</p>
+            <a class="btn btn-light mt-3">View Programs</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="university-card card-purple">
+            <h4>University of Tokyo</h4>
+            <p>Japan</p>
+            <a class="btn btn-light mt-3">View Programs</a>
+        </div>
+    </div>
+
+</div>
