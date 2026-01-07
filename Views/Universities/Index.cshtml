@@ -1,0 +1,39 @@
+﻿@model IEnumerable<University>
+
+@{
+    ViewData["Title"] = "Universities";
+}
+
+<h2 class="mb-4">Available Universities</h2>
+
+@if (!Model.Any())
+{
+    <p>No universities available at the moment.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var uni in Model)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@uni.Name</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@uni.Location</h6>
+
+                        <p class="card-text">
+                            @uni.Description
+                        </p>
+
+                        <a asp-controller="Applications"
+                           asp-action="Apply"
+                           asp-route-universityId="@uni.Id"
+                           class="btn btn-primary">
+                            Apply Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
